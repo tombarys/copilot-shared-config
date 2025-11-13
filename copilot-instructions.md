@@ -5,7 +5,7 @@ This document provides guidance for an AI assistant on how to effectively help w
 ## General Clojure & Calva Development Guide
 
 You are an expert in Interactive Programming with Clojure (also known as REPL-driven development). You love Interactive Programming. You love Clojure. You have tools available for evaluating Clojure code and for looking up clojuredocs.org info.
-
+w
 ## ⚠️ CRITICAL: Clojure Namespace and Filename Convention
 
 **ALWAYS follow this essential Clojure naming convention to prevent syntax errors:**
@@ -400,3 +400,69 @@ When assisting, focus on providing idiomatic `tablecloth`, generally `scicloj` s
 - Exception: proper nouns, names, and titles should retain their standard capitalization
 - Example: "Základní terminologie" not "Základní Terminologie"
 - Example: "Git základy" not "Git Základy" (unless Git is treated as proper noun)
+
+## Firebase & ClojureScript Project Workflow
+
+### Production Deployment Best Practices
+- **Always use release builds for production**: Use deployment scripts (e.g., `./deploy.sh`) that explicitly run `shadow-cljs release app`
+- **Never deploy dev builds to production**: Dev builds include debugging tools, larger file sizes, and WebSocket connections that cause issues in production
+- **Key indicators of dev build mistakes**:
+  - WebSocket errors in production logs
+  - `goog.DEBUG` set to `true` in production
+  - Debug logging appearing in browser console on production site
+  - Larger than expected JavaScript bundle sizes
+
+### Shadow-cljs Build Configuration
+- **Dev mode** should set:
+  - `DEV_MODE = true`
+  - `LOG_DEBUG_ENABLED = true`
+  - No optimizations (faster builds)
+  - Hot reload enabled
+- **Release mode** should set:
+  - `DEV_MODE = false`
+  - `LOG_DEBUG_ENABLED = false`
+  - Advanced optimizations
+  - DevTools completely disabled (including `shadow.cljs.devtools.client.env/*`)
+
+### Code Commenting for Feature Rollback
+When reverting incomplete features while preserving code for future development:
+- Use `#_` reader macro for commenting out entire forms in Clojure/ClojureScript
+- For CSS, use `/* COMMENTED OUT: feature description */` blocks
+- Always add clear markers like `COMMENTED OUT:` and `REVERTED:` with instructions
+- Include context about why code was reverted and how to re-enable it
+- Example pattern:
+  ```clojure
+  ;; COMMENTED OUT: One-row slot layout (grouped by user-email)
+  ;; To re-enable: uncomment this block and comment out the simple version below
+  #_(defn one-row-layout [data]
+      ;; implementation here
+      )
+  
+  ;; REVERTED: Simple display (production-ready fallback)
+  (defn simple-layout [data]
+    ;; working implementation
+    )
+  ```
+
+### Git Branch Investigation Best Practices
+When investigating which branch was deployed to production:
+1. Check Firebase Functions deployment - running functions reveal deployed code (use `firebase functions:list`)
+2. Compare function signatures between branches and production
+3. Look for deployment commit messages in git history with keywords like "deploy", "production", "release"
+4. Check for environment-specific configurations that indicate prod vs dev
+5. Use `git log --all --grep="pattern"` to search commit messages across all branches
+
+### Firebase Functions Deployment Strategy
+- Functions code often diverges from main application code
+- When investigating production state, examine `functions/index.js` differences between branches
+- Functions like `sendPushNotificationOnDBChangeAYCM` vs `sendPushNotificationOnDBChange` can indicate which branch is deployed
+- Use `firebase deploy --only functions` for functions-only updates
+- Keep functions code synchronized with application state requirements
+
+### Repository Forensics
+When codebase history is unclear:
+- Use `git log --all --graph --oneline --simplify-by-decoration` to see branch structure
+- Check merge-base between branches to find divergence points: `git merge-base branch1 branch2`
+- Compare file diffs across branches: `git diff branch1..branch2 -- specific/file.js`
+- Look for dated commits to establish timeline: `git log --date=short --pretty=format:"%h %ad %s"`
+- Tag important states before making major changes: `git tag production-YYYY-MM-DD commit-hash`
