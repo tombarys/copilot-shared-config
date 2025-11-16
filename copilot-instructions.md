@@ -395,6 +395,24 @@ When assisting, focus on providing idiomatic `tablecloth`, generally `scicloj` s
 - For shell/bash code blocks in documentation intended for Roam Research, use ```shell instead of ```bash
 - This ensures better compatibility with Roam Research's code block rendering
 
+### Roam Research Tables
+- When asked to create a table for Roam Research, use nested lists instead of Markdown tables.
+- Each row is a top-level bullet.
+- Each cell within a row is a nested bullet.
+- The header is the first "row" in the list.
+
+**Example:**
+
+- Header 1
+    - Header 2
+        - Header 3
+- Row 1, Cell 1
+    - Row 1, Cell 2
+        - Row 1, Cell 3
+- Row 2, Cell 1
+    - Row 2, Cell 2
+        - Row 2, Cell 3
+
 ### Czech Language Headings
 - Czech headings should use standard capitalization (only first word capitalized)
 - Exception: proper nouns, names, and titles should retain their standard capitalization
